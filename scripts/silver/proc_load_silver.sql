@@ -174,10 +174,10 @@ BEGIN
         SELECT
             REPLACE(cid, '-', '') AS cid,
             CASE
-                WHEN TRIM(cntry) = 'DE' THEN 'Germany'
-                WHEN TRIM(cntry) IN ('US', 'USA') THEN 'United States'
-                WHEN TRIM(cntry) = '' OR cntry IS NULL THEN 'N/A'
-                ELSE TRIM(cntry)
+                WHEN REPLACE(REPLACE(TRIM(cntry), CHAR(13), ''), CHAR(10), '') = 'DE' THEN 'Germany'
+                WHEN REPLACE(REPLACE(TRIM(cntry), CHAR(13), ''), CHAR(10), '') IN ('US', 'USA') THEN 'United States'
+                WHEN REPLACE(REPLACE(TRIM(cntry), CHAR(13), ''), CHAR(10), '') = '' OR cntry IS NULL THEN 'N/A'
+                ELSE REPLACE(REPLACE(TRIM(cntry), CHAR(13), ''), CHAR(10), '')
             END AS cntry -- Normalize country codes into readable format and handle missing or blank data
         FROM bronze.erp_loc_a101;
         SET @end_time = GETDATE();
@@ -228,7 +228,10 @@ BEGIN
             id,
             cat,
             subcat,
-            maintenance
+            CASE
+                WHEN maintenance IS NULL OR TRIM(maintenance) = '' THEN 'n/a'
+                ELSE REPLACE(maintenance, CHAR(13), '')
+            END AS maintenance
         FROM bronze.erp_px_cat_g1v2;
         SET @end_time = GETDATE();
         PRINT '>> Load Duration: ' + CAST(DATEDIFF(millisecond, @start_time, @end_time) AS NVARCHAR) + ' milliseconds';
